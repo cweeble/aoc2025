@@ -19,37 +19,56 @@ sub thou {
 open (IN, 'input_data') || warn "no input file!";
 my $answer;
 my %fresh;
-my @keys;
-my @noMatch;
+my %item;
+my %outOfRange;
+my @isFresh;
+my $i=0;
 while (<IN>) {
     chomp;
+    print ++$i . $/;
     next unless (/\d/);
     if (/^(\d+)-(\d+)$/) {
-        $fresh{$1} = $2;
-        push @keys, $1;
+        my ($min, $max) = (int($1), int($2));
+        if (exists $fresh{$min}) {
+            next if ($fresh{$min} > $max);
+        }
+        $fresh{$min} = $max;
     }
     else {
-        my $thou = thou($_);
-        print "Searching for $thou $/";
-        for my $min (@keys, "last") {
-            if ($min eq "last") {
-                print "  No match found for $thou %/";
-                push @noMatch, $_;
+        my $inp = int($_);
+        my $thou = thou($inp);
+        print "Searching for $thou length " . length($inp) . $/ ;
+        print "  keys in range:" . scalar(keys %fresh) . $/;
+
+        my %frCopy = %fresh;
+        my @del = grep { $_ > $inp } keys %frCopy;
+        delete @frCopy{@del};
+        @del = grep { $frCopy{$_} < $inp } keys %frCopy;
+        delete @frCopy{@del};
+
+        $item{$inp}++;
+#       $outOfRange{$inp}++;
+        my $is_fresh = 0;
+        for my $min (keys %fresh) {
+            my $max = $fresh{$min};
+            if ($inp >= $min && $inp <= $max) {
+                $is_fresh = 1;
                 last;
             }
-            my ($thou_min, $thou_max) = (thou($min), thou($fresh{$min}));
-            print "  Comparing $thou to range ${thou_min} to ${thou_max} $/";
-            print "      too low$/" and next if ($min > $_);
-            print "      too high$/" and next if ($fresh{$min} < $_);
-            print "      just right!";
+        }
+        if ($is_fresh) {
             $answer++;
-            print "      Count is now $answer $/";
-            last;
+            push @isFresh, $inp;
+        } else {
+            $outOfRange{$inp}++;
         }
     }
 }
+
+print $_. $/ for (@isFresh);
+#print scalar keys( %outOfRange ) . " out of range $/";
 $DB::single = 1;
-print join($/, @noMatch);
+
 
 printf ("%s $/", $answer);
 __DATA__
