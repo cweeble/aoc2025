@@ -20,7 +20,7 @@ sub new {
     };
 
     if ($self->{mapref}->[$x][$y] eq '|') {
-        $self->{stops} = 1;
+        $self->{stops} = $y;
     } elsif ($self->{mapref}->[$x][$y] eq '.') {
         $self->{mapref}->[$x][$y] = '|';
     }
@@ -33,20 +33,23 @@ sub moveSouth {
     return if ($self->{stops});
     $self->{y}++;
     if ($self->{y} > $self->{max_y}) {
-        $self->{stops} = 1;
+        $self->{stops} = $self->{y};
         return;
     }
     if ($self->{mapref}->[$self->{x}][$self->{y}] eq '^') {
         $self->{num_splits}++;
+        $self->{mapref}->[$self->{x}][$self->{y}] = '%';
         $self->{spawn_child} = join(':', $self->{x}+1, $self->{y})
             unless ($self->{x}+1 > $self->{max_x});
         $self->{x}--;
         if ($self->{x} < 0) {
-            $self->{stops} = 1;
+            $self->{stops} = $self->{y};
             return;
         }
         if ($self->{mapref}->[$self->{x}][$self->{y}] eq '|') {
-            $self->{stops} = 1;
+            $self->{stops} = $self->{y};
+        } elsif ($self->{mapref}->[$self->{x}][$self->{y}] eq '%') {
+            $self->{stops} = $self->{y};
         } elsif ($self->{mapref}->[$self->{x}][$self->{y}] eq '.') {
             $self->{mapref}->[$self->{x}][$self->{y}] = '|';
         }
