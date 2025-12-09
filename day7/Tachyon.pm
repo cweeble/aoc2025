@@ -34,7 +34,7 @@ sub new {
 
 sub moveSouth {
     my $self = shift;
-    return if ($self->{stops});
+#   return if ($self->{stops});
     if ($self->{y}+1 > $self->{max_y}) {
         $self->{stops} = $self->{y};
         return;
