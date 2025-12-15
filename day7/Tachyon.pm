@@ -34,7 +34,6 @@ sub new {
 
 sub moveSouth {
     my $self = shift;
-#   return if ($self->{stops});
     if ($self->{y}+1 > $self->{max_y}) {
         $self->{stops} = $self->{y};
         return;
@@ -68,6 +67,11 @@ sub moveSouth {
 sub log_position {
     my $self = shift;
     my $location = ' ' . join(':', $self->{x}, $self->{y}) . ' ';
+    if ($self->{spawn_child}) {
+        my ($x, $y) = split(':', $self->{history}->[-1]);
+        $y++;
+        push (@{ $self->{history} }, "$x:$y S");
+    }
     push @{$self->{history}}, $location;
     my @visited = @{$_[0]};
     my $already_visited = $visited[$self->{x}][$self->{y}]++;
