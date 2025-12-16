@@ -6,7 +6,7 @@ open (IN, 'input_data') || warn "no input file!";
 my @junctions;
 my %circuits;
 my $answer;
-while (<DATA>) {
+while (<IN>) {
     chomp;
     my ($x, $y, $z) = split(/,/, $_);
     my $junction = JB->new(scalar @junctions, $x, $y, $z);
