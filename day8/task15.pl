@@ -1,7 +1,6 @@
 #!/usr/bin/perl -I ./
 use strict;
 use JB;
-use Circuits;
 my $max_number = 10;
 open (IN, 'input_data') || warn "no input file!";
 my @junctions;
@@ -13,7 +12,6 @@ while (<DATA>) {
     my $junction = JB->new(scalar @junctions, $x, $y, $z);
     push @junctions, $junction;
     my @array = ($junction);
-    $circuits{$junction->{id}} = Circuits->new(scalar(keys %circuits), \@array);
 }
 
 my %distances;
@@ -49,10 +47,18 @@ for my $shortest_paths (@distances) {
     my $dist_id = $distances{$shortest_paths};
     my ($id1, $id2) = split(/:/, $dist_id);
     my $jb1 = $junctions[$id1];
-    my @circuits = @{$jb1->{circuit_with}};
-    unshift @circuits, $id1;
-    $circuits{$id1}->build_circuit(\@junctions, \%circuits);
-    
+    $jb1->finalise_circuit();
+}
+
+for (my $i=0; $i<$#junctions; $i++) {
+    next unless defined $junctions[$i];
+    my @finalised = sort {$a <=> $b} @{ $junctions[$i]->{finalised_circuit} };
+    my $keep = shift(@finalised);
+    map { $junctions[$_] = undef } @finalised;
+}
+
+for my $jb ( sort { scalar @{$b->{finalised_circuit}} <=> scalar @{$a->{finalised_circuit}} } grep { defined $_ } @junctions) {
+    print scalar @{$jb->{finalised_circuit}} . $/;
 }
 printf ("%s $/", $answer);
 __DATA__
