@@ -1,7 +1,7 @@
 #!/usr/bin/perl -I ./
 use strict;
 use JB;
-my $max_number = 10;
+my $max_number = 1000;
 open (IN, 'input_data') || warn "no input file!";
 my @junctions;
 my %circuits;
