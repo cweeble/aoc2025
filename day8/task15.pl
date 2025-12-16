@@ -6,7 +6,7 @@ open (IN, 'input_data') || warn "no input file!";
 my @junctions;
 my %circuits;
 my $answer;
-while (<DATA>) {
+while (<IN>) {
     chomp;
     my ($x, $y, $z) = split(/,/, $_);
     my $junction = JB->new(scalar @junctions, $x, $y, $z);
@@ -57,8 +57,12 @@ for (my $i=0; $i<$#junctions; $i++) {
     map { $junctions[$_] = undef } @finalised;
 }
 
+$answer = 1;
+my $count = 3;
 for my $jb ( sort { scalar @{$b->{finalised_circuit}} <=> scalar @{$a->{finalised_circuit}} } grep { defined $_ } @junctions) {
-    print scalar @{$jb->{finalised_circuit}} . $/;
+#   print scalar @{$jb->{finalised_circuit}} . $/;
+    $answer *= scalar @{$jb->{finalised_circuit}};
+    last unless --$count;
 }
 printf ("%s $/", $answer);
 __DATA__
