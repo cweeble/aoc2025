@@ -8,7 +8,7 @@ my %boundary;
 my ($xMax, $yMax) = (0,0);
 my @lines;
 my %index;
-while (<DATA>) {
+while (<IN>) {
     chomp;
     my ($x, $y) = split(/,/, $_);
     push (@coordinates, [ $x, $y ]);
@@ -30,6 +30,7 @@ for my $xy (0 .. $#coordinates) {
 my $lineCount = 1;
 my $prevLine = '';
 for my $y (0..$yMax) {
+    printf("Processing line %d of %d$/", $y, $yMax) if ($y % 1000 == 0);
     my $line;
     my $count = 0;
     for my $x (0..$xMax+2) {
