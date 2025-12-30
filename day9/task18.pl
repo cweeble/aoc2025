@@ -6,6 +6,8 @@ my $answer;
 my @coordinates;
 my %boundary;
 my ($xMax, $yMax) = (0,0);
+my @lines;
+my %index;
 while (<DATA>) {
     chomp;
     my ($x, $y) = split(/,/, $_);
@@ -72,21 +74,25 @@ for my $y (0..$yMax) {
     $line =~ s/(GGG+)/length($1) . 'G'/e;
     if ($line eq $prevLine) {
         $lineCount++;
+        $index{$y} = $#lines+1;
     } else {
         if ($prevLine) {
-            print $prevLine;
-            print " (x${lineCount})" if $lineCount > 1;
-            print "\n";
+            $prevLine .= " (x${lineCount})" if $lineCount > 1;
+            push (@lines, $prevLine);
         }
         $prevLine = $line;
         $lineCount = 1;
+        $index{$y} = $#lines+1;
     }
 }
 chop $prevLine;
-print "$prevLine\n";
-die;
+push(@lines, $prevLine);
+$index{$yMax} = $#lines;
+
+# Calculate max area
 my $max = 0;
 for my $start (0..$#coordinates) {
+    COORDINATE:
     for my $end ($start+1..$#coordinates) {
         my ($x1, $y1) = ($coordinates[$start]->[0], $coordinates[$start]->[1]);
         my ($x2, $y2) = ($coordinates[$end]->[0], $coordinates[$end]->[1]);
@@ -97,12 +103,47 @@ for my $start (0..$#coordinates) {
         $diff_x++;
         $diff_y++;
         my $area = $diff_x * $diff_y;
-        $max = $area if $area > $max;
+        printf(
+            "%s to %s has area %d$/",
+            join(':', @{$coordinates[$start]}),
+            join(':', @{$coordinates[$end]}),
+            $area
+        );
+        if ($max < $area) {
+            # verify there are no dots in the area.
+            print "new maximum found, checking for dots$/";
+            my ($firstLine, $lastLine) = ($y1 < $y2) ?
+                ($index{$y1}, $index{$y2})
+            :   ($index{$y2}, $index{$y1})
+            ;
+            for my $lineNum ($firstLine .. $lastLine) {
+                my $encoded = $lines[$lineNum];
+                my $line = '';
+                while ($encoded =~ /\G(\d*)(\D)/g) {
+                    my $num = $1 ? $1 : 1;
+                    my $char = $2;
+                    $line .= $char x $num;
+                }
+                my $from = $x1 < $x2 ? $x1 : $x2;
+                $line = substr($line, $from, $diff_x);
+                if ($line =~ /\./) {
+                    printf(
+                        "line %d (%s) has a dot in position %d$/",
+                        $lineNum,
+                        $encoded,
+                        index($line, '.') + $from
+                    );
+                    next COORDINATE;
+                }
+            }
+            print "no dots found, updating max to ${area}$/";
+            $max = $area;
+        }
     }
 }
 
 $answer = $max;
-printf ("%s $/", $answer);
+printf ("$/answer = %s $/", $answer);
 __DATA__
 7,1
 11,1
