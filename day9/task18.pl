@@ -79,6 +79,7 @@ for my $y (0..$yMax) {
     } else {
         if ($prevLine) {
             $prevLine .= " (x${lineCount})" if $lineCount > 1;
+            $prevLine .= sprintf("(#%d-#%d)", $y - $lineCount, $y);
             push (@lines, $prevLine);
         }
         $prevLine = $line;
@@ -87,6 +88,7 @@ for my $y (0..$yMax) {
     }
 }
 chop $prevLine;
+$prevLine .= "(#${yMax})";
 push(@lines, $prevLine);
 $index{$yMax} = $#lines;
 
@@ -106,8 +108,8 @@ for my $start (0..$#coordinates) {
         my $area = $diff_x * $diff_y;
         printf(
             "%s to %s has area %d$/",
-            join(':', @{$coordinates[$start]}),
-            join(':', @{$coordinates[$end]}),
+            $x1<$x2 ? join(':', @{$coordinates[$start]}) : join(':', @{$coordinates[$end]}),
+            $x1<$x2 ? join(':', @{$coordinates[$end]}) : join(':', @{$coordinates[$start]}),
             $area
         );
         if ($max < $area) {
@@ -119,8 +121,10 @@ for my $start (0..$#coordinates) {
             ;
             for my $lineNum ($firstLine .. $lastLine) {
                 my $encoded = $lines[$lineNum];
+                my $encoded2 = $encoded;
+                $encoded2 =~ s/\(.*//;
                 my $line = '';
-                while ($encoded =~ /\G(\d*)(\D)/g) {
+                while ($encoded2 =~ /\G(\d*)(\D)/g) {
                     my $num = $1 ? $1 : 1;
                     my $char = $2;
                     $line .= $char x $num;
@@ -145,6 +149,7 @@ for my $start (0..$#coordinates) {
 
 $answer = $max;
 printf ("$/answer = %s $/", $answer);
+warn $answer;
 __DATA__
 7,1
 11,1
