@@ -6,7 +6,7 @@ my $answer;
 my @coordinates;
 my %boundary;
 my ($xMax, $yMax) = (0,0);
-while (<IN>) {
+while (<DATA>) {
     chomp;
     my ($x, $y) = split(/,/, $_);
     push (@coordinates, [ $x, $y ]);
@@ -30,25 +30,46 @@ my $prevLine = '';
 for my $y (0..$yMax) {
     my $line;
     my $count = 0;
-    for my $x (0..$xMax) {
+    for my $x (0..$xMax+2) {
         my $key = "$x:$y";
         if (exists $boundary{$key}) {
-            if ($count == 1) { $line .= '.'; }
-            elsif ($count == 2) { $line .= '..'; }
-            elsif ($count > 2) { $line .= "${count}."; }
+            $line .= "${count}." if ($count);
             $count = 0;
             $line .= $boundary{$key};
         } else {
             $count++;
         }
     }
-    if ($count == 1) { $line .= '.'; }
-    elsif ($count == 2) { $line .= '..'; }
-    elsif ($count > 2) { $line .= "${count}."; }
+    $line .= "${count}." if ($count);
     if ($y == $yMax) {
         $line .= 'F';
     }
-    $line =~ s/(GGG+)/length($1)G/e;
+    if (($line =~ /G/) && ($line !~ /R/)) {
+        while ($line =~ /G(\d+)\.G/g) {
+            my $num = $1;
+            my $replacement = $num > 2 ? $num . 'g' : 'g' x $num;
+            $line =~ s/G${num}\.G/G${replacement}G/;
+        }
+    } 
+    elsif (($line =~ /\.G/) || ($line =~ /G\./)) {
+        my @threeThirds = ($line =~ /(.*)(RG+R)(.*)/);
+        while ($threeThirds[0] =~ /\.G(\d+)\.G/g) {
+            my $num = $1;
+            my $replacement = $num > 2 ? $num . 'g' : 'g' x $num;
+            $threeThirds[0] =~ s/\.G${num}/.${replacement}G/;
+        }
+        if ($threeThirds[2] =~ /G/) {
+            my @split = split(/G/, $threeThirds[2]);
+            my $i = $#split;
+            while ($i >= 1) {
+                $split[$i-1] =~ s/\./g/g;
+                $i-=2;
+            }
+            $threeThirds[2] = join('G', @split);
+        }
+        $line = join('', @threeThirds);
+    }
+    $line =~ s/(GGG+)/length($1) . 'G'/e;
     if ($line eq $prevLine) {
         $lineCount++;
     } else {
